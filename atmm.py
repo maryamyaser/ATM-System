@@ -1,35 +1,10 @@
-from abc import ABC , abstractmethod
 from tkinter import *
 from tkinter import messagebox
+from accounts import Account , BankAccount
+
 from datetime import date 
 
-class Account(ABC) :
-    @abstractmethod
-    def deposit(self , amount):
-        pass
-    @abstractmethod
-    def withdraw(self , amount):
-        pass
-
-class BankAccount(Account):
-    def __init__(self , name , password , balance):
-        self.name = name
-        self.__password = password
-        self.__balance = int(balance)
-    def get_password(self):
-        return self.__password
-    def get_balance(self):
-        return self.__balance
-    def deposit(self, amount):
-        self.__balance += amount
-    def withdraw(self, amount):
-        if amount > self.__balance :
-            return False
-        self.__balance -= amount
-        return True
-    def __str__(self):
-        return f'{self.name} {self.__password} {self.__balance}'
-    
+  
 current_user = None
 
 def load_accounts():
@@ -40,8 +15,8 @@ def load_accounts():
                 line = line.strip()
                 if line =='':
                     continue
-                name , password , balance = line.split()
-                accounts.append( BankAccount(name , password , balance ))
+                account_number , name , password , balance = line.split()
+                accounts.append( BankAccount(account_number , name , password , balance ))
     except FileNotFoundError :
         return []
     return accounts
@@ -49,7 +24,7 @@ def load_accounts():
 def save_accounts(accounts):
     with open('data.txt' , 'w') as f :
         for acc in accounts :
-            f.write( f'{acc.name} {acc.get_password()} {acc.get_balance()} \n')
+            f.write( f'{acc.account_number} {acc.name} {acc.get_password()} {acc.get_balance()} \n')
 
 def login():
     global current_user
@@ -146,10 +121,10 @@ def transfer_money():
 
 
 def trans_submit():
-    target_name = target_entry.get().strip()
+    target_user = target_entry.get().strip()
     target_account = None
     for acc in accounts :
-        if target_name == acc.name :
+        if target_user == acc.account_number :
             target_account = acc
             break
     if target_account == None :
@@ -259,7 +234,8 @@ def submit():
         if username == acc.name :
             messagebox.showinfo("ERROR" , 'ACCOUNT ALREADY EXISTS.')
             return
-    accounts.append(BankAccount(username , password , balance))
+    account_number = len(accounts) + 1
+    accounts.append(BankAccount(account_number , username , password , balance))
     save_accounts(accounts)
     messagebox.showinfo("STATUS" , 'ACCOUNT CREATED SUCCESSFULY.')
     create_entry.delete(0,END)
